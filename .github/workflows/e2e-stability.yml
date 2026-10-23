@@ -1,0 +1,57 @@
+# Prova de estabilidade (Fase 5): roda a suite completa N vezes, EM SEQUENCIA (max-parallel: 1),
+# nunca em paralelo — o site e publico e compartilhado (MEM-003). Disparo manual:
+# Actions > e2e-stability > Run workflow. Sem retries; cada execucao e um job com resultado proprio.
+
+name: e2e-stability
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    name: execucao ${{ matrix.run }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      max-parallel: 1
+      fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    env:
+      CI: 'true'
+      BASE_URL: https://www.automationexercise.com
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E suite
+        run: npm test
+
+      - name: Upload Playwright HTML report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-run-${{ matrix.run }}
+          path: playwright-report/
+          retention-days: 14
+
+      - name: Upload traces and screenshots of failures
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-run-${{ matrix.run }}
+          path: test-results/
+          retention-days: 14

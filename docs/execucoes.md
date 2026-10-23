@@ -11,7 +11,8 @@ Colunas: "Falha esperada" = teste de bug conhecido que falhou como esperado; "Fa
 | Ambiente | Série | Resultado |
 |----------|-------|-----------|
 | Local (Windows 11, Chromium headless) | 3ª série, execuções 2 a 11 | ✅ **10 consecutivas sem falha inesperada** |
-| GitHub Actions | — | pendente (Fase 6) |
+| GitHub Actions | 1ª execução (push do commit `4f2522e`), [run 39884571898](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39884571898) | ✅ verde: todos os passos com sucesso; artefatos `playwright-report` e `allure-report` publicados |
+| GitHub Actions | 10 consecutivas (`e2e-stability`, disparo manual) | pendente |
 
 ## 1ª série — 2026-10-22, 4 workers, limites originais (teste 30 s, assertion 5 s)
 
