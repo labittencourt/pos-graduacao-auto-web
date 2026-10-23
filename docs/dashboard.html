@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QA Dashboard — pos-graduacao-auto-web</title>
+<style>
+  :root {
+    --bg: #f5f6f8;
+    --bg-panel: #ffffff;
+    --bg-header: #ffffff;
+    --border: #e1e4e8;
+    --text: #1f2328;
+    --text-dim: #6b7280;
+    --accent: #2563eb;
+    --accent-dim: #dbeafe;
+    --code-bg: #f0f1f3;
+    --row-hover: #f8fafc;
+    --green-bg: #dcfce7; --green-text: #166534;
+    --red-bg: #fee2e2; --red-text: #991b1b;
+    --yellow-bg: #fef9c3; --yellow-text: #854d0e;
+    --blue-bg: #dbeafe; --blue-text: #1e40af;
+    --purple-bg: #f3e8ff; --purple-text: #6b21a8;
+    --gray-bg: #e5e7eb; --gray-text: #374151;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --bg-panel: #171a21;
+      --bg-header: #171a21;
+      --border: #2a2e37;
+      --text: #e6e8eb;
+      --text-dim: #9aa1ac;
+      --accent: #60a5fa;
+      --accent-dim: #1e3a5f;
+      --code-bg: #21252d;
+      --row-hover: #1c2028;
+      --green-bg: #14321f; --green-text: #86efac;
+      --red-bg: #3a1a1a; --red-text: #fca5a5;
+      --yellow-bg: #3a2f0f; --yellow-text: #fde047;
+      --blue-bg: #1e2f4d; --blue-text: #93c5fd;
+      --purple-bg: #2e1f47; --purple-text: #d8b4fe;
+      --gray-bg: #2a2e37; --gray-text: #d1d5db;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+  header {
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 24px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  header h1 { margin: 0; font-size: 1.25rem; }
+  header .subtitle { margin: 4px 0 0; color: var(--text-dim); font-size: 0.85rem; }
+  header .reload {
+    float: right;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.85rem;
+  }
+  header .reload:hover { border-color: var(--accent); }
+  nav.tabs {
+    display: flex;
+    gap: 4px;
+    padding: 0 24px;
+    background: var(--bg-header);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    padding: 10px 14px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--text); }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+  .tab-btn .count {
+    display: inline-block;
+    margin-left: 6px;
+    background: var(--gray-bg);
+    color: var(--gray-text);
+    border-radius: 10px;
+    padding: 1px 7px;
+    font-size: 0.75rem;
+  }
+  main { padding: 20px 24px 60px; max-width: 1200px; margin: 0 auto; }
+  .panel { display: none; }
+  .panel.active { display: block; }
+  .file-desc { color: var(--text-dim); font-size: 0.85rem; margin: 0 0 16px; max-width: 800px; }
+  .missing-state {
+    background: var(--bg-panel);
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    color: var(--text-dim);
+    text-align: center;
+  }
+  .section { margin-bottom: 28px; }
+  .section h3 {
+    font-size: 0.95rem;
+    margin: 0 0 10px;
+    color: var(--text);
+  }
+  .search-wrap {
+    position: relative;
+    max-width: 320px;
+    margin-bottom: 16px;
+  }
+  .search-box {
+    width: 100%;
+    padding: 7px 30px 7px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--bg-panel);
+    color: var(--text);
+    font-size: 0.85rem;
+    box-sizing: border-box;
+  }
+  .search-box::placeholder { color: var(--text-dim); }
+  .search-clear {
+    display: none;
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--text-dim);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .search-clear:hover { background: var(--border); color: var(--text); }
+  .search-wrap.has-value .search-clear { display: block; }
+  .table-wrap {
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg-panel);
+  }
+  table { border-collapse: collapse; width: 100%; font-size: 0.85rem; }
+  th, td {
+    text-align: left;
+    padding: 9px 12px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  th {
+    background: var(--code-bg);
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  tbody tr:hover { background: var(--row-hover); }
+  tbody tr:last-child td { border-bottom: none; }
+  .empty-state {
+    padding: 20px;
+    color: var(--text-dim);
+    font-size: 0.85rem;
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  code {
+    background: var(--code-bg);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-size: 0.85em;
+    font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  }
+  .badge {
+    display: inline-block;
+    margin-right: 4px;
+    border-radius: 4px;
+    padding: 1px 4px;
+  }
+  .cell-green, .cell-red, .cell-yellow, .cell-blue, .cell-purple, .cell-gray {
+    border-radius: 4px;
+    padding: 2px 6px;
+    display: inline;
+  }
+  .cell-green { background: var(--green-bg); color: var(--green-text); }
+  .cell-red { background: var(--red-bg); color: var(--red-text); }
+  .cell-yellow { background: var(--yellow-bg); color: var(--yellow-text); }
+  .cell-blue { background: var(--blue-bg); color: var(--blue-text); }
+  .cell-purple { background: var(--purple-bg); color: var(--purple-text); }
+  .cell-gray { background: var(--gray-bg); color: var(--gray-text); }
+  .id-toggle {
+    background: none;
+    border: none;
+    color: var(--accent);
+    cursor: pointer;
+    font: inherit;
+    font-weight: 600;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+  .id-toggle:hover { text-decoration: underline; }
+  .id-toggle-arrow {
+    display: inline-block;
+    transition: transform 0.15s ease;
+    font-size: 0.7em;
+    color: var(--text-dim);
+  }
+  .id-toggle.expanded .id-toggle-arrow { transform: rotate(90deg); }
+  tr.detail-row td { background: var(--code-bg); }
+  .detail-body { padding: 10px 4px; font-size: 0.85rem; line-height: 1.6; max-width: 760px; }
+  .detail-body h4, .detail-body h5, .detail-body h6 { margin: 14px 0 6px; font-size: 0.9rem; }
+  .detail-body h4:first-child, .detail-body h5:first-child, .detail-body h6:first-child { margin-top: 0; }
+  .detail-body p { margin: 0 0 10px; }
+  .detail-body ul, .detail-body ol { margin: 0 0 10px; padding-left: 20px; }
+  .detail-body li { margin-bottom: 4px; }
+  .detail-body pre {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px;
+    overflow-x: auto;
+    font-size: 0.8rem;
+  }
+  .detail-empty { color: var(--text-dim); }
+  .detail-source { color: var(--text-dim); font-size: 0.8rem; margin: 0 0 10px; }
+  .detail-loading { color: var(--text-dim); font-style: italic; }
+  footer { text-align: center; color: var(--text-dim); font-size: 0.75rem; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <button class="reload" onclick="location.reload()">↻ Recarregar</button>
+  <h1>QA Dashboard</h1>
+  <p class="subtitle">Leitura ao vivo de <code>docs/*.md</code> — nada aqui é editado por esta página, só leitura.</p>
+</header>
+
+<nav class="tabs" id="tabs"></nav>
+<main id="content"></main>
+
+<footer>Gerado a partir dos índices mantidos pelos Agentes 1–9 do QA Agent System. Rode os agentes ou a suite pra atualizar os dados, depois recarregue esta página.</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  var FILES = [
+    { id: 'bugs', file: 'bugs-index.md', label: 'Bugs', desc: 'Status atual de cada bug e claim encontrado pelos testes automatizados.' },
+    { id: 'audit', file: 'audit-index.md', label: 'Auditoria', desc: 'Pendências de qualidade de teste (Agente 9) ainda não resolvidas.' },
+    { id: 'flaky', file: 'flaky-index.md', label: 'Flaky', desc: 'Histórico de instabilidade de cada teste e status de quarentena.' },
+    { id: 'us', file: 'us-index.md', label: 'US', desc: 'Backlog de US/demandas analisadas — status, estágio e dependências.' },
+    { id: 'memory', file: 'project-memory.md', label: 'Memória', desc: 'Contexto de projeto que não pertence a nenhum índice específico.' },
+    { id: 'catalog', file: 'test-catalog.md', label: 'Catálogo de Testes', desc: 'Todo teste já executado, atualizado automaticamente pelo reporter.' }
+  ];
+
+  var EMOJI_CLASS = {
+    '✅': 'cell-green',
+    '❌': 'cell-red',
+    '⏰': 'cell-yellow',
+    '🟡': 'cell-yellow',
+    '🔵': 'cell-blue',
+    '🟣': 'cell-purple',
+    '⚫': 'cell-gray'
+  };
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  function renderInline(raw) {
+    var s = escapeHtml(raw);
+    s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+    s = s.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+    s = s.replace(/~~([^~]+)~~/g, '<s>$1</s>');
+    return s;
+  }
+
+  // Remove marcacao inline (`code`, **bold**, ~~strike~~) sem escapar/tagear
+  // — usado pra comparar valor de celula (ex: "Arquivo") contra texto puro
+  // de heading em outro arquivo, que nao tem essa marcacao.
+  function stripInlineMarkdown(raw) {
+    return (raw || '')
+      .replace(/`([^`]+)`/g, '$1')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/~~([^~]+)~~/g, '$1')
+      .trim();
+  }
+
+  // Celula tipo "ultimas execucoes" (ex: flaky-index.md) e uma sequencia de
+  // icones de status sem texto — cada um precisa da sua propria cor, nao da
+  // cor do primeiro icone aplicada ao grupo inteiro.
+  function isEmojiSequence(chars) {
+    if (chars.length < 2) return false;
+    return chars.every(function (ch) { return EMOJI_CLASS[ch] || ch === ' '; });
+  }
+
+  function renderCell(raw) {
+    var trimmed = (raw || '').trim();
+    var chars = Array.from(trimmed);
+
+    if (isEmojiSequence(chars)) {
+      return chars.filter(function (ch) { return ch !== ' '; }).map(function (ch) {
+        return '<span class="badge ' + EMOJI_CLASS[ch] + '">' + escapeHtml(ch) + '</span>';
+      }).join('');
+    }
+
+    var first = chars[0];
+    if (first && EMOJI_CLASS[first]) {
+      var rest = chars.slice(1).join('').trim();
+      var cls = EMOJI_CLASS[first];
+      var badge = '<span class="badge">' + escapeHtml(first) + '</span>';
+      if (!rest) return badge;
+      return badge + '<span class="' + cls + '">' + renderInline(rest) + '</span>';
+    }
+    return renderInline(trimmed);
+  }
+
+  function splitRow(line) {
+    var s = line.trim();
+    if (s.charAt(0) === '|') s = s.slice(1);
+    if (s.charAt(s.length - 1) === '|') s = s.slice(0, -1);
+    return s.split('|').map(function (c) { return c.trim(); });
+  }
+
+  function isSeparatorLine(line) {
+    var t = line.trim();
+    if (!t || t.indexOf('|') === -1 && t.indexOf('-') === -1) return false;
+    return /^[\s|:-]+$/.test(t) && t.indexOf('-') !== -1;
+  }
+
+  // Analisa markdown: extrai titulo (H1), uma tabela por secao (H2) e, dentro
+  // de cada secao, sub-blocos "### <ID> ..." (ex: "### US-001" em
+  // us-index.md > Detalhamento) com o corpo de linhas cru — usado depois pra
+  // deixar o ID clicavel na tabela e abrir esse conteudo pra leitura.
+  function parseMarkdown(text) {
+    var lines = text.split(/\r?\n/);
+    var title = '';
+    var i = 0;
+    for (; i < lines.length; i++) {
+      var t = lines[i].trim();
+      if (t.indexOf('# ') === 0) { title = t.slice(2).trim(); i++; break; }
+      if (t) break;
+    }
+
+    var sections = [];
+    // Tabela pode aparecer direto sob o H1, sem nenhum "## heading" antes
+    // (ex: audit-index.md, flaky-index.md, test-catalog.md) — a secao
+    // "sem nome" abaixo captura esse caso; secoes "## heading" trocam para
+    // uma nova secao normalmente.
+    var current = { heading: null, table: null, subsections: [] };
+    sections.push(current);
+    var activeSub = null;
+
+    for (; i < lines.length; i++) {
+      var line = lines[i];
+      var trimmed = line.trim();
+
+      var h2Match = trimmed.match(/^##\s+(.*)$/);
+      if (h2Match) {
+        current = { heading: h2Match[1].trim(), table: null, subsections: [] };
+        sections.push(current);
+        activeSub = null;
+        continue;
+      }
+
+      var h3Match = trimmed.match(/^###\s+(.*)$/);
+      if (h3Match) {
+        var headingText = h3Match[1].trim();
+        var idMatch = headingText.match(/^([A-Za-z]{2,}-\d+)/);
+        activeSub = { heading: headingText, id: idMatch ? idMatch[1] : null, bodyLines: [] };
+        current.subsections.push(activeSub);
+        continue;
+      }
+
+      if (current && !current.table && trimmed.charAt(0) === '|') {
+        var next = (lines[i + 1] || '');
+        if (isSeparatorLine(next)) {
+          var header = splitRow(trimmed);
+          var rows = [];
+          i += 2;
+          while (i < lines.length && lines[i].trim().charAt(0) === '|') {
+            rows.push(splitRow(lines[i]));
+            i++;
+          }
+          i--;
+          current.table = { header: header, rows: rows };
+          continue;
+        }
+      }
+
+      if (activeSub) {
+        activeSub.bodyLines.push(line);
+      }
+    }
+
+    return { title: title, sections: sections };
+  }
+
+  // ID -> subsecao "### ID ..." de qualquer secao do documento (nao so de
+  // uma secao chamada "Detalhamento" — funciona por convencao de nome do ID,
+  // nao por nome fixo de secao).
+  function collectDetails(parsed) {
+    var map = {};
+    parsed.sections.forEach(function (s) {
+      (s.subsections || []).forEach(function (sub) {
+        if (sub.id) map[sub.id] = sub;
+      });
+    });
+    return map;
+  }
+
+  // Renderizador minimo de markdown pro corpo de uma subsecao "### ID"
+  // (heading nivel 4-6, listas, paragrafos, bloco de codigo cercado por
+  // ```) — nao e um parser de markdown completo, so o suficiente pro texto
+  // livre que os agentes escrevem em Detalhamento.
+  function renderDetailBody(lines) {
+    var html = '';
+    var i = 0;
+    var paragraph = [];
+
+    function flushParagraph() {
+      if (paragraph.length) {
+        html += '<p>' + paragraph.map(renderInline).join('<br>') + '</p>';
+        paragraph = [];
+      }
+    }
+
+    while (i < lines.length) {
+      var trimmed = lines[i].trim();
+
+      if (!trimmed) { flushParagraph(); i++; continue; }
+
+      if (trimmed.indexOf('```') === 0) {
+        flushParagraph();
+        var codeLines = [];
+        i++;
+        while (i < lines.length && lines[i].trim().indexOf('```') !== 0) {
+          codeLines.push(lines[i]);
+          i++;
+        }
+        i++;
+        html += '<pre><code>' + escapeHtml(codeLines.join('\n')) + '</code></pre>';
+        continue;
+      }
+
+      var headingMatch = trimmed.match(/^(#{2,6})\s+(.*)$/);
+      if (headingMatch) {
+        flushParagraph();
+        var level = Math.min(6, headingMatch[1].length + 1);
+        html += '<h' + level + '>' + renderInline(headingMatch[2].trim()) + '</h' + level + '>';
+        i++;
+        continue;
+      }
+
+      var bulletMatch = trimmed.match(/^[-*]\s+(.*)$/);
+      if (bulletMatch) {
+        flushParagraph();
+        var items = [];
+        while (i < lines.length) {
+          var bm = lines[i].trim().match(/^[-*]\s+(.*)$/);
+          if (!bm) break;
+          items.push('<li>' + renderInline(bm[1]) + '</li>');
+          i++;
+        }
+        html += '<ul>' + items.join('') + '</ul>';
+        continue;
+      }
+
+      var numMatch = trimmed.match(/^\d+\.\s+(.*)$/);
+      if (numMatch) {
+        flushParagraph();
+        var nitems = [];
+        while (i < lines.length) {
+          var nm = lines[i].trim().match(/^\d+\.\s+(.*)$/);
+          if (!nm) break;
+          nitems.push('<li>' + renderInline(nm[1]) + '</li>');
+          i++;
+        }
+        html += '<ol>' + nitems.join('') + '</ol>';
+        continue;
+      }
+
+      // "\" solto no fim da linha e quebra de linha "dura" do markdown
+      // (convencao do Agente 3 em CA0X/cenarios) — o <br> do join() abaixo
+      // ja cobre isso, a barra literal so sobraria como ruido visual.
+      paragraph.push(trimmed.replace(/\\+$/, ''));
+      i++;
+    }
+    flushParagraph();
+    return html || '<p class="detail-empty">Sem conteúdo registrado ainda.</p>';
+  }
+
+  // Busca cruzada com arquivos que já existem fora do índice, sem duplicar
+  // nada nele: bugs-index.md guarda o nome do bug-report na coluna "Fonte"
+  // (Agente 7); audit-index.md/flaky-index.md não guardam o nome do
+  // relatório, mas os relatórios de auditoria/triage (Agentes 9/6) usam um
+  // heading "### <Arquivo>:<Teste>" que bate exatamente com essas duas
+  // colunas da tabela — o mesmo texto vira a chave de busca.
+
+  function extractHeadingBlock(text, level, matchFn) {
+    var lines = text.split(/\r?\n/);
+    var exactRe = new RegExp('^#{' + level + '}(?!#)\\s+(.*)$');
+    var stopRe = new RegExp('^#{1,' + level + '}(?!#)\\s+');
+    for (var i = 0; i < lines.length; i++) {
+      var t = lines[i].trim();
+      var m = t.match(exactRe);
+      if (m && matchFn(m[1].trim())) {
+        var body = [];
+        var j = i + 1;
+        while (j < lines.length && !stopRe.test(lines[j].trim())) {
+          body.push(lines[j]);
+          j++;
+        }
+        return body;
+      }
+    }
+    return null;
+  }
+
+  var runsListingPromise = null;
+  function fetchRunsListing() {
+    if (!runsListingPromise) {
+      runsListingPromise = fetch('_api/runs').then(function (res) {
+        return res.ok ? res.json() : { files: [] };
+      }).then(function (data) {
+        return data.files || [];
+      }).catch(function () {
+        return [];
+      });
+    }
+    return runsListingPromise;
+  }
+
+  var runsFileCache = {};
+  function fetchRunsFile(name) {
+    if (!(name in runsFileCache)) {
+      runsFileCache[name] = fetch('runs/' + name).then(function (res) {
+        return res.ok ? res.text() : null;
+      }).catch(function () {
+        return null;
+      });
+    }
+    return runsFileCache[name];
+  }
+
+  // bugs-index.md: coluna "Fonte" aponta pro bug-report que documenta este
+  // BUG-ID (Agente 7). Um bug-report pode cobrir mais de um bug agrupado
+  // (mesmo tema, mesmo dia) — cada um tem seu proprio "## BUG-ID — titulo",
+  // entao tenta isolar so o bloco deste ID antes de cair pro arquivo inteiro.
+  function makeBugFileLoader(fonteValue, idValue) {
+    return function () {
+      return fetch(fonteValue).then(function (res) {
+        if (!res.ok) throw new Error('not found');
+        return res.text();
+      }).then(function (text) {
+        var block = extractHeadingBlock(text, 2, function (h) { return h.indexOf(idValue) === 0; });
+        var bodyHtml = renderDetailBody(block || text.split(/\r?\n/));
+        return '<p class="detail-source">Fonte: <code>' + escapeHtml(fonteValue) + '</code></p>' + bodyHtml;
+      }).catch(function () {
+        return '<p class="detail-empty">Não encontrei <code>' + escapeHtml(fonteValue) + '</code> em <code>docs/</code>.</p>';
+      });
+    };
+  }
+
+  // audit-index.md/flaky-index.md: procura em docs/runs/ (mais recente
+  // primeiro) um relatorio que tenha o heading "### <Arquivo>:<Teste>"
+  // exato desta linha.
+  function makeRunsSearchLoader(key, filePattern) {
+    return function () {
+      return fetchRunsListing().then(function (files) {
+        var candidates = files.filter(function (f) { return filePattern.test(f); }).sort().reverse();
+        return candidates.reduce(function (chain, filename) {
+          return chain.then(function (found) {
+            if (found) return found;
+            return fetchRunsFile(filename).then(function (text) {
+              if (!text) return null;
+              var block = extractHeadingBlock(text, 3, function (h) { return h.toLowerCase() === key.toLowerCase(); });
+              return block ? { filename: filename, body: block } : null;
+            });
+          });
+        }, Promise.resolve(null));
+      }).then(function (result) {
+        if (!result) {
+          return '<p class="detail-empty">Nenhum relatório em <code>docs/runs/</code> menciona <code>' +
+            escapeHtml(key) + '</code> ainda.</p>';
+        }
+        return '<p class="detail-source">Fonte: <code>runs/' + escapeHtml(result.filename) + '</code></p>' +
+          renderDetailBody(result.body);
+      });
+    };
+  }
+
+  // test-catalog.md: o titulo do teste comeca com o TC-ID do cenario Gherkin
+  // que o originou (convencao do Agente 2, ex: "TC-B01 — Lista pedidos").
+  // O cenario em si mora em docs/analysis/<US>/test-scenarios.md ou
+  // docs/reverse/<tela>-test-scenarios.md, sem formato fixo de heading
+  // (pode ser "### TC-B01", "**TC-B01** — titulo" ou so "TC-B01 (Funcional)
+  // [AUTOMAÇÃO]") — por isso o matcher aceita qualquer um: hashes opcionais,
+  // asteriscos de negrito opcionais, depois o ID no comeco da linha.
+  function extractByIdPrefix(text, idValue) {
+    var lines = text.split(/\r?\n/);
+    var markerRe = /^#{0,6}\s*\*{0,2}\s*([A-Za-z]+-[A-Za-z0-9]+)\b/;
+    var startIdx = -1;
+    for (var i = 0; i < lines.length; i++) {
+      var m = lines[i].trim().match(markerRe);
+      if (m && m[1] === idValue) { startIdx = i; break; }
+    }
+    if (startIdx < 0) return null;
+    var body = [lines[startIdx]];
+    for (var j = startIdx + 1; j < lines.length; j++) {
+      if (markerRe.test(lines[j].trim())) break;
+      body.push(lines[j]);
+    }
+    return body;
+  }
+
+  var scenarioListingPromise = null;
+  function fetchScenarioListing() {
+    if (!scenarioListingPromise) {
+      scenarioListingPromise = fetch('_api/scenarios').then(function (res) {
+        return res.ok ? res.json() : { files: [] };
+      }).then(function (data) {
+        return data.files || [];
+      }).catch(function () {
+        return [];
+      });
+    }
+    return scenarioListingPromise;
+  }
+
+  var scenarioFileCache = {};
+  function fetchScenarioFile(relPath) {
+    if (!(relPath in scenarioFileCache)) {
+      scenarioFileCache[relPath] = fetch(relPath).then(function (res) {
+        return res.ok ? res.text() : null;
+      }).catch(function () {
+        return null;
+      });
+    }
+    return scenarioFileCache[relPath];
+  }
+
+  function makeScenarioSearchLoader(tcId) {
+    return function () {
+      return fetchScenarioListing().then(function (files) {
+        var candidates = files.slice().sort();
+        return candidates.reduce(function (chain, relPath) {
+          return chain.then(function (found) {
+            if (found) return found;
+            return fetchScenarioFile(relPath).then(function (text) {
+              if (!text) return null;
+              var block = extractByIdPrefix(text, tcId);
+              return block ? { relPath: relPath, body: block } : null;
+            });
+          });
+        }, Promise.resolve(null));
+      }).then(function (result) {
+        if (!result) {
+          return '<p class="detail-empty">Nenhum cenário encontrado para <code>' + escapeHtml(tcId) +
+            '</code> em <code>docs/analysis/</code> ou <code>docs/reverse/</code>.</p>';
+        }
+        return '<p class="detail-source">Fonte: <code>' + escapeHtml(result.relPath) + '</code></p>' +
+          renderDetailBody(result.body);
+      });
+    };
+  }
+
+  function totalRows(parsed) {
+    return parsed.sections.reduce(function (sum, s) {
+      return sum + (s.table ? s.table.rows.length : 0);
+    }, 0);
+  }
+
+  var detailSeq = 0;
+  var detailLoaders = {};
+
+  function buildTable(table, ctx) {
+    ctx = ctx || {};
+    var detailsById = ctx.detailsById || {};
+    if (!table || table.rows.length === 0) {
+      return '<div class="empty-state">Nenhum registro ainda.</div>';
+    }
+    var idColIndex = table.header.findIndex(function (h) { return h.trim().toLowerCase() === 'id'; });
+    var fonteColIndex = table.header.findIndex(function (h) { return h.trim().toLowerCase() === 'fonte'; });
+    var arquivoColIndex = table.header.findIndex(function (h) { return h.trim().toLowerCase() === 'arquivo'; });
+    var testeColIndex = table.header.findIndex(function (h) { return h.trim().toLowerCase() === 'teste'; });
+    var colCount = table.header.length;
+
+    var head = '<tr>' + table.header.map(function (h) {
+      return '<th>' + escapeHtml(h) + '</th>';
+    }).join('') + '</tr>';
+
+    var body = table.rows.map(function (row) {
+      var searchText = escapeHtml(row.join(' ').toLowerCase());
+      var idValue = idColIndex >= 0 ? (row[idColIndex] || '').trim() : null;
+      var detailAnchor = 'detail-' + (detailSeq++);
+
+      var sameFileDetail = idValue ? detailsById[idValue] : null;
+      var externalLoader = null;
+      // Coluna que vira botao clicavel: normalmente "ID", mas test-catalog.md
+      // nao tem coluna ID — o titulo em "Teste" comeca com o TC-ID do
+      // cenario Gherkin que originou o teste (convencao do Agente 2).
+      var clickColIndex = idColIndex;
+
+      if (!sameFileDetail && idValue) {
+        if (ctx.entryId === 'bugs' && fonteColIndex >= 0) {
+          var fonteValue = stripInlineMarkdown(row[fonteColIndex]);
+          if (/\.md$/i.test(fonteValue)) {
+            externalLoader = makeBugFileLoader(fonteValue, idValue);
+          }
+        } else if ((ctx.entryId === 'audit' || ctx.entryId === 'flaky') && arquivoColIndex >= 0 && testeColIndex >= 0) {
+          var key = stripInlineMarkdown(row[arquivoColIndex]) + ':' + stripInlineMarkdown(row[testeColIndex]);
+          var pattern = ctx.entryId === 'audit' ? /-audit-report\.md$/i : /-triage\.md$/i;
+          externalLoader = makeRunsSearchLoader(key, pattern);
+        }
+      }
+
+      if (!externalLoader && ctx.entryId === 'catalog' && testeColIndex >= 0) {
+        var testeValue = stripInlineMarkdown(row[testeColIndex]);
+        var tcMatch = testeValue.match(/^([A-Za-z]+-[A-Za-z0-9]+)/);
+        if (tcMatch) {
+          clickColIndex = testeColIndex;
+          externalLoader = makeScenarioSearchLoader(tcMatch[1]);
+        }
+      }
+
+      var hasDetail = !!(sameFileDetail || externalLoader);
+
+      var cells = row.map(function (cell, ci) {
+        if (ci === clickColIndex && hasDetail) {
+          var label = ci === idColIndex ? escapeHtml(idValue) : renderCell(cell);
+          return '<td><button type="button" class="id-toggle" data-detail-target="' + detailAnchor + '">' +
+            '<span class="id-toggle-arrow">▸</span>' + label + '</button></td>';
+        }
+        return '<td>' + renderCell(cell) + '</td>';
+      }).join('');
+
+      var mainRow = '<tr data-search="' + searchText + '">' + cells + '</tr>';
+      if (!hasDetail) return mainRow;
+
+      if (externalLoader) detailLoaders[detailAnchor] = externalLoader;
+      var initialBody = sameFileDetail ? renderDetailBody(sameFileDetail.bodyLines) : '';
+
+      var detailRow = '<tr class="detail-row" id="' + detailAnchor + '" hidden>' +
+        '<td colspan="' + colCount + '"><div class="detail-body">' + initialBody + '</div></td>' +
+        '</tr>';
+      return mainRow + detailRow;
+    }).join('');
+
+    return '<div class="table-wrap"><table><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+  }
+
+  function buildPanel(entry, parsed) {
+    var html = '<p class="file-desc">' + escapeHtml(entry.desc) + '</p>';
+    html += '<div class="search-wrap">' +
+      '<input type="text" class="search-box" placeholder="Filtrar em ' + escapeHtml(entry.label) + '…" data-panel="' + entry.id + '">' +
+      '<button type="button" class="search-clear" data-panel="' + entry.id + '" aria-label="Limpar busca" title="Limpar busca">&times;</button>' +
+      '</div>';
+
+    var ctx = { detailsById: collectDetails(parsed), entryId: entry.id };
+    var sectionsWithTable = parsed.sections.filter(function (s) { return s.table; });
+    if (sectionsWithTable.length === 0) {
+      html += '<div class="empty-state">Nenhuma tabela encontrada neste arquivo.</div>';
+    } else {
+      sectionsWithTable.forEach(function (s) {
+        var heading = s.heading ? '<h3>' + escapeHtml(s.heading) + '</h3>' : '';
+        html += '<div class="section">' + heading + buildTable(s.table, ctx) + '</div>';
+      });
+    }
+    return html;
+  }
+
+  function buildMissingPanel(entry) {
+    return '<div class="missing-state">' +
+      '<strong>' + escapeHtml(entry.file) + '</strong> não encontrado neste projeto.<br>' +
+      'Ele nasce vazio junto com o resto do scaffold — se ainda não existe, algo na geração do projeto pode ter sido pulado.' +
+      '</div>';
+  }
+
+  function filterPanel(panelId, query) {
+    var panel = document.getElementById('panel-' + panelId);
+    if (!panel) return;
+    var q = query.trim().toLowerCase();
+    var rows = panel.querySelectorAll('tbody tr:not(.detail-row)');
+    rows.forEach(function (row) {
+      var text = row.getAttribute('data-search') || '';
+      row.style.display = (!q || text.indexOf(q) !== -1) ? '' : 'none';
+    });
+    // Colapsa qualquer detalhe aberto ao filtrar — evita linha de detalhe
+    // ficando visivel presa embaixo de uma linha principal recem-escondida.
+    panel.querySelectorAll('tr.detail-row').forEach(function (dr) { dr.hidden = true; });
+    panel.querySelectorAll('.id-toggle.expanded').forEach(function (btn) { btn.classList.remove('expanded'); });
+  }
+
+  function toggleDetail(btn) {
+    var row = document.getElementById(btn.dataset.detailTarget);
+    if (!row) return;
+    row.hidden = !row.hidden;
+    btn.classList.toggle('expanded', !row.hidden);
+
+    if (!row.hidden && !row.dataset.loaded) {
+      row.dataset.loaded = '1';
+      var loader = detailLoaders[row.id];
+      if (loader) {
+        var body = row.querySelector('.detail-body');
+        body.innerHTML = '<p class="detail-loading">Carregando…</p>';
+        loader().then(function (html) { body.innerHTML = html; });
+      }
+    }
+  }
+
+  function activateTab(id) {
+    document.querySelectorAll('.tab-btn').forEach(function (btn) {
+      btn.classList.toggle('active', btn.dataset.tab === id);
+    });
+    document.querySelectorAll('.panel').forEach(function (panel) {
+      panel.classList.toggle('active', panel.id === 'panel-' + id);
+    });
+  }
+
+  function init() {
+    var tabsEl = document.getElementById('tabs');
+    var contentEl = document.getElementById('content');
+
+    Promise.all(FILES.map(function (entry) {
+      return fetch(entry.file).then(function (res) {
+        if (!res.ok) throw new Error('not found');
+        return res.text();
+      }).then(function (text) {
+        return { entry: entry, parsed: parseMarkdown(text), missing: false };
+      }).catch(function () {
+        return { entry: entry, parsed: null, missing: true };
+      });
+    })).then(function (results) {
+      var firstNonEmpty = null;
+
+      results.forEach(function (result) {
+        var entry = result.entry;
+        var count = result.missing ? 0 : totalRows(result.parsed);
+
+        var btn = document.createElement('button');
+        btn.className = 'tab-btn';
+        btn.dataset.tab = entry.id;
+        btn.innerHTML = escapeHtml(entry.label) + '<span class="count">' + count + '</span>';
+        btn.addEventListener('click', function () { activateTab(entry.id); });
+        tabsEl.appendChild(btn);
+
+        var panel = document.createElement('div');
+        panel.className = 'panel';
+        panel.id = 'panel-' + entry.id;
+        panel.innerHTML = result.missing ? buildMissingPanel(entry) : buildPanel(entry, result.parsed);
+        contentEl.appendChild(panel);
+
+        if (!firstNonEmpty && count > 0) firstNonEmpty = entry.id;
+      });
+
+      contentEl.addEventListener('input', function (e) {
+        if (e.target.classList.contains('search-box')) {
+          filterPanel(e.target.dataset.panel, e.target.value);
+          e.target.closest('.search-wrap').classList.toggle('has-value', e.target.value.length > 0);
+        }
+      });
+
+      contentEl.addEventListener('click', function (e) {
+        var idToggle = e.target.closest ? e.target.closest('.id-toggle') : null;
+        if (idToggle) { toggleDetail(idToggle); return; }
+
+        var clearBtn = e.target.closest ? e.target.closest('.search-clear') : null;
+        if (clearBtn) {
+          var wrap = clearBtn.closest('.search-wrap');
+          var input = wrap.querySelector('.search-box');
+          input.value = '';
+          filterPanel(clearBtn.dataset.panel, '');
+          wrap.classList.remove('has-value');
+          input.focus();
+        }
+      });
+
+      activateTab(firstNonEmpty || FILES[0].id);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+})();
+</script>
+
+</body>
+</html>
