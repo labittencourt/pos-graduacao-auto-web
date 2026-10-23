@@ -12,7 +12,9 @@ Colunas: "Falha esperada" = teste de bug conhecido que falhou como esperado; "Fa
 |----------|-------|-----------|
 | Local (Windows 11, Chromium headless) | 3ª série, execuções 2 a 11 | ✅ **10 consecutivas sem falha inesperada** |
 | GitHub Actions | 1ª execução (push do commit `4f2522e`), [run 39884571898](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39884571898) | ✅ verde: todos os passos com sucesso; artefatos `playwright-report` e `allure-report` publicados |
-| GitHub Actions | 10 consecutivas (`e2e-stability`, disparo manual) | pendente |
+| GitHub Actions | 2ª execução (push do commit `d31431d`), [run 39885365216](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39885365216) | ✅ verde |
+| GitHub Actions | 1ª série de 10 (`e2e-stability`), [run 39885435395](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39885435395) | ❌ 7 de 10: as execuções 7, 8 e 10 foram bloqueadas pela verificação anti-bot do site (ambiente) |
+| GitHub Actions | 2ª série de 10, espaçada (MEM-004) | pendente |
 
 ## 1ª série — 2026-10-22, 4 workers, limites originais (teste 30 s, assertion 5 s)
 
@@ -83,3 +85,29 @@ Colunas: "Falha esperada" = teste de bug conhecido que falhou como esperado; "Fa
 
 ## Observação sobre a duração
 Com 2 workers, cada execução leva cerca de 110 s (contra cerca de 40 s com 4). É o custo de não sobrecarregar um site público e compartilhado.
+
+## GitHub Actions — 1ª série de 10 (`e2e-stability`, run 39885435395, 2026-10-23)
+
+Execuções sequenciais (1 por job, 1 worker), sem espaçamento.
+
+| Execução | Início (UTC) | Fim (UTC) | Resultado | Causa |
+|---------:|--------------|-----------|-----------|-------|
+| 1 | 01:41:41 | 01:44:26 | ✅ | — |
+| 2 | 01:44:27 | 01:47:00 | ✅ | — |
+| 3 | 01:47:02 | 01:55:28 | ✅ | — |
+| 4 | 01:55:31 | 02:00:35 | ✅ | — |
+| 5 | 02:00:37 | 02:03:42 | ✅ | — |
+| 6 | 02:03:44 | 02:06:53 | ✅ | — |
+| 7 | 02:06:54 | 02:12:17 | ❌ 25 falhas | verificação anti-bot do site |
+| 8 | 02:12:19 | 02:17:09 | ❌ 25 falhas | verificação anti-bot do site |
+| 9 | 02:17:11 | 02:20:17 | ✅ | — |
+| 10 | 02:20:19 | 02:29:18 | ❌ 25 falhas | verificação anti-bot do site |
+
+**Triagem (FLK-004, ambiente)**
+- **Nas execuções 7, 8 e 10, todos os 25 testes que deveriam passar falharam.** Os testes de UI não acharam o logo, os campos ou os títulos, e a API de contas devolveu HTML (`Resposta nao-JSON da API de contas: <!DOCTYPE html>`).
+- **Print** (`test-results-run-7/.../test-failed-1.png`): a página *"Please wait while your request is being verified…"*.
+- **Trace:** `GET /` respondeu **HTTP 200** com a página de desafio. O script da página chamou um endpoint de checagem com `failedChecks=webdriverCheck`: o site detectou o navegador automatizado e bloqueou o runner.
+- **Padrão:** começou depois de cerca de 25 minutos de execuções seguidas vindas de IPs de datacenter do GitHub. Localmente (IP residencial, tráfego espaçado) o desafio nunca apareceu.
+- **Classificação:** ambiente (proteção anti-bot de terceiro). Não é defeito do produto nem dos testes.
+- **O que NÃO foi feito:** esconder a automação (remover `navigator.webdriver`, plugins "stealth") para passar pelo desafio. Seria burlar um controle de segurança de terceiro e mascarar o ambiente.
+- **Tratamento (decisão do usuário, MEM-004):** (1) a série espera 20 min entre execuções; (2) a pré-checagem `scripts/check-site-access.js` roda antes dos testes e falha na hora com "AMBIENTE BLOQUEADO" quando o site serve o desafio; (3) os testes que falham com o desafio na tela recebem a anotação `ambiente`; (4) reporter `github` no CI para que as falhas apareçam como anotação pública do job.

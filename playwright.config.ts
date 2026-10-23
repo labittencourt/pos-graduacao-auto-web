@@ -25,6 +25,8 @@ export default defineConfig({
   workers: process.env.CI ? 1 : 2,
   reporter: [
     ['./src/reporters/console.reporter.ts'],
+    // No CI, cada falha vira anotacao publica do job (nome do teste + erro), legivel sem login.
+    ...(process.env.CI ? [['github'] as const] : []),
     ['html', { open: 'never' }],
     [
       'allure-playwright',

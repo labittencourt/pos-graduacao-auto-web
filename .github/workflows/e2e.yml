@@ -48,6 +48,9 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Check site access (anti-bot)
+        run: node scripts/check-site-access.js
+
       - name: Run E2E suite
         run: npm test
 

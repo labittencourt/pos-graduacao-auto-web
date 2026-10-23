@@ -23,6 +23,7 @@ a confirmação final é sempre do usuário, mesma disciplina de quarentena
 
 | ID | Categoria | Resumo | Desde | Última confirmação | Status |
 |----|-----------|--------|-------|---------------------|--------|
+| MEM-004 | Ambiente | Anti-bot do site bloqueia runners do CI depois de tráfego contínuo: série de estabilidade espaçada (20 min) + pré-checagem `check-site-access.js`; nunca burlar o desafio | 2026-10-23 | 2026-10-23 | 🟢 Ativo |
 | MEM-003 | Ambiente | Picos de latência do site: limite por teste 60 s, assertions 10 s, 2 workers locais (1 no CI), dimensionados pela medição da Fase 5 | 2026-10-22 | 2026-10-22 | 🟢 Ativo |
 | MEM-002 | Ambiente | Anúncios do Google AdSense (vignette) interceptam cliques de navegação; a suíte bloqueia só os hosts de anúncio (fixture `blockThirdPartyAds`, `BLOCK_ADS=0` desliga) | 2026-10-22 | 2026-10-22 | 🟢 Ativo |
 | MEM-001 | Convenção | Stories não voltam ao PO: testadas como estão; lacunas resolvidas por observação no site ou como suposição do QA documentada | 2026-10-22 | 2026-10-22 | 🟢 Ativo |
@@ -58,3 +59,11 @@ a confirmação final é sempre do usuário, mesma disciplina de quarentena
 - **Fato:** o site tem picos de latência em requisições isoladas. Nas execuções 7 a 9, a mediana dos testes quase não mudou (1,1x), mas o teste mais lento passou de 14–17 s para 23–30,3 s, e 3 testes estouraram limites (teste 30 s, assertion 5 s, ação 10 s).
 - **Regra:** limite por teste de 60 s (cerca de 2x o pico observado de 30,3 s); assertions com 10 s; 2 workers locais e 1 no CI, para não sobrecarregar o site. O limite por ação (10 s) **não** foi alterado.
 - **Como aplicar:** não aumentar limites além disso sem nova medição e nova decisão. A duração de cada execução fica em `docs/execucoes.md` para expor degradação, em vez de escondê-la. Retry continua proibido.
+
+### MEM-004 — Verificação anti-bot do site no CI
+
+- **Categoria:** Ambiente
+- **Origem:** 1ª série de 10 no GitHub Actions (2026-10-23), decisão do usuário.
+- **Fato:** depois de cerca de 25 min de execuções seguidas, o site serviu aos runners do GitHub uma página de verificação anti-bot (HTTP 200, "Please wait while your request is being verified…", `failedChecks=webdriverCheck`). Todos os testes da execução falharam por isso.
+- **Regra:** a série de estabilidade espera 20 min entre execuções. O `scripts/check-site-access.js` roda antes dos testes nos dois workflows e falha com "AMBIENTE BLOQUEADO" se o desafio for servido. **Nunca** esconder a automação nem tentar passar pelo desafio.
+- **Como aplicar:** falha da pré-checagem = ambiente, não suíte. Registrar em `docs/execucoes.md` e não contar como defeito do produto nem do teste.

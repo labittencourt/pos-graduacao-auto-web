@@ -1,6 +1,11 @@
 # Prova de estabilidade (Fase 5): roda a suite completa N vezes, EM SEQUENCIA (max-parallel: 1),
 # nunca em paralelo — o site e publico e compartilhado (MEM-003). Disparo manual:
 # Actions > e2e-stability > Run workflow. Sem retries; cada execucao e um job com resultado proprio.
+#
+# Espacamento (MEM-004): na 1a serie, depois de ~25 min de execucoes seguidas, o site passou a servir
+# uma verificacao anti-bot aos runners (failedChecks=webdriverCheck) e 3 de 10 execucoes falharam
+# inteiras. Cada execucao a partir da 2a espera 20 min antes de comecar, para espacar o trafego.
+# A pre-checagem de acesso so OBSERVA o bloqueio e falha com mensagem clara — nao tenta contorna-lo.
 
 name: e2e-stability
 
@@ -11,7 +16,7 @@ jobs:
   run:
     name: execucao ${{ matrix.run }}
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     strategy:
       max-parallel: 1
       fail-fast: false
@@ -22,6 +27,10 @@ jobs:
       BASE_URL: https://www.automationexercise.com
 
     steps:
+      - name: Cooldown between runs (20 min)
+        if: ${{ matrix.run > 1 }}
+        run: sleep 1200
+
       - name: Checkout
         uses: actions/checkout@v4
 
@@ -36,6 +45,9 @@ jobs:
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
+
+      - name: Check site access (anti-bot)
+        run: node scripts/check-site-access.js
 
       - name: Run E2E suite
         run: npm test

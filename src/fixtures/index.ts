@@ -121,6 +121,13 @@ export const test = base.extend<Fixtures>({
       for (const error of errors) {
         testInfo.annotations.push({ type: 'ambiente', description: `Servidor do site respondeu ${error}` });
       }
+      // Verificacao anti-bot do site (CI, docs/execucoes.md): HTTP 200 com pagina de desafio. So observa.
+      if (testInfo.status !== testInfo.expectedStatus && !page.isClosed()) {
+        const challenged = await page.getByText('Please wait while your request is being verified').count().catch(() => 0);
+        if (challenged > 0) {
+          testInfo.annotations.push({ type: 'ambiente', description: 'Site serviu a verificacao anti-bot a este navegador automatizado' });
+        }
+      }
     },
     { auto: true },
   ],

@@ -7,3 +7,4 @@ playwright-report/
 src/auth/.auth/state.json
 *.local
 .playwright-mcp/
+.ci-artifacts/

@@ -17,6 +17,7 @@ que estabilizou.
 
 | ID | Arquivo | Teste | Últimas execuções (mais recente → mais antiga) | Taxa de flaky (últimas 5) | Status | Desde |
 |----|---------|-------|--------------------------------------------------|----------------------------|--------|-------|
+| FLK-004 | (suíte inteira, só no CI) | todos | 1ª série de 10 no Actions: 3 execuções bloqueadas (7, 8, 10) | — | Ambiente: anti-bot do site. Espaçamento + detecção (MEM-004); nova série pendente | 2026-10-23 |
 | FLK-003 | tests/compra.spec.ts, tests/catalogo.spec.ts | US10-EXTRA Payment without card number is blocked (falhou); TC09 Search Product e todos os que usam "Proceed To Checkout" (expostos) | 1 falha na 1ª série de 10 execuções da suíte (execução 6) | — | Causa raiz corrigida (2026-10-22) — nova série de 10 em andamento | 2026-10-22 |
 | FLK-002 | tests/compra.spec.ts | TC15 Place Order: Register before Checkout | antes: 7/11 e 7/12 passaram; depois: 21/21 | 0/5 após a correção | Causa raiz corrigida (2026-10-22) — não entrou em quarentena | 2026-10-22 |
 | FLK-001 | tests/catalogo.spec.ts | TC08 Verify All Products and product detail page | sem bloqueio: 4 falhas em 71 execuções; com bloqueio: 0 em 60 + suíte 36/36 | 0/5 após a correção | Causa raiz corrigida (2026-10-22) — não entrou em quarentena | 2026-10-22 |
@@ -51,3 +52,9 @@ que estabilizou.
 ### Falha da execução 1 (1ª série) — investigação pendente
 - `US11-EXTRA Guest cart is kept after login`: depois de `homePage.goto()`, `.features_items .product-image-wrapper .productinfo p` não apareceu em 10 s (`locator.textContent: Timeout 10000ms exceeded`).
 - **Sem evidência para classificar:** os artefatos foram sobrescritos (OC-16), e não há hipótese confirmada. Não foi corrigida "no escuro". A nova série grava a saída de cada execução numa pasta própria para capturar print, vídeo e trace se ela voltar.
+
+### FLK-004 — Verificação anti-bot do site bloqueia o runner do GitHub
+- **Sintoma:** em 3 de 10 execuções da 1ª série do CI, os 25 testes que deveriam passar falharam juntos (página sem logo, API devolvendo HTML).
+- **Classificação:** problema de AMBIENTE. Diagnóstico completo em `docs/execucoes.md` (seção "GitHub Actions — 1ª série de 10").
+- **Evidência:** print "Please wait while your request is being verified…"; trace com `GET /` → 200 e checagem `failedChecks=webdriverCheck`.
+- **Tratamento:** sem burlar o desafio. Espaçamento de 20 min entre execuções da série, pré-checagem de acesso que falha com mensagem clara e anotação `ambiente` por teste (MEM-004).
