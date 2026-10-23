@@ -60,8 +60,18 @@ async function checkBrowser() {
   console.error('AMBIENTE BLOQUEADO — a suite nao foi executada porque o site recusou este runner:');
   for (const problem of problems) console.error(`  - ${problem}`);
   console.error('Isto e um problema de ambiente (protecao anti-bot do site), nao defeito do produto nem dos testes.');
+  annotate(`AMBIENTE BLOQUEADO: ${problems.join(' | ')}`);
   process.exitCode = 1;
 })().catch((error) => {
   console.error('AMBIENTE INACESSIVEL:', error.message);
+  annotate(`AMBIENTE INACESSIVEL: ${error.message}`);
   process.exitCode = 1;
 });
+
+/** No GitHub Actions, vira anotacao publica do job (legivel sem login, ao contrario do log). */
+function annotate(message) {
+  if (process.env.GITHUB_ACTIONS) {
+    const plain = message.replace(/\x1b\[[0-9;]*m/g, '').replace(/\r?\n/g, ' ');
+    console.log(`::error title=Ambiente (pre-checagem)::${plain}`);
+  }
+}

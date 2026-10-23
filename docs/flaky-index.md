@@ -17,6 +17,7 @@ que estabilizou.
 
 | ID | Arquivo | Teste | Últimas execuções (mais recente → mais antiga) | Taxa de flaky (últimas 5) | Status | Desde |
 |----|---------|-------|--------------------------------------------------|----------------------------|--------|-------|
+| FLK-005 | (suíte inteira, só no CI) | TC15, US03-EXTRA Session persists (execução 2); pré-checagem (execução 8) | 2ª série de 10 no Actions: 2 execuções interrompidas | — | Ambiente: sobrecarga do site ("queue full") e recusa do runner | 2026-10-23 |
 | FLK-004 | (suíte inteira, só no CI) | todos | 1ª série de 10 no Actions: 3 execuções bloqueadas (7, 8, 10) | — | Ambiente: anti-bot do site. Espaçamento + detecção (MEM-004); nova série pendente | 2026-10-23 |
 | FLK-003 | tests/compra.spec.ts, tests/catalogo.spec.ts | US10-EXTRA Payment without card number is blocked (falhou); TC09 Search Product e todos os que usam "Proceed To Checkout" (expostos) | 1 falha na 1ª série de 10 execuções da suíte (execução 6) | — | Causa raiz corrigida (2026-10-22) — nova série de 10 em andamento | 2026-10-22 |
 | FLK-002 | tests/compra.spec.ts | TC15 Place Order: Register before Checkout | antes: 7/11 e 7/12 passaram; depois: 21/21 | 0/5 após a correção | Causa raiz corrigida (2026-10-22) — não entrou em quarentena | 2026-10-22 |
@@ -58,3 +59,9 @@ que estabilizou.
 - **Classificação:** problema de AMBIENTE. Diagnóstico completo em `docs/execucoes.md` (seção "GitHub Actions — 1ª série de 10").
 - **Evidência:** print "Please wait while your request is being verified…"; trace com `GET /` → 200 e checagem `failedChecks=webdriverCheck`.
 - **Tratamento:** sem burlar o desafio. Espaçamento de 20 min entre execuções da série, pré-checagem de acesso que falha com mensagem clara e anotação `ambiente` por teste (MEM-004).
+
+### FLK-005 — Sobrecarga e indisponibilidade intermitente do site (CI, 2ª série)
+- **Sintoma:** na execução 2, 2 testes falharam; na 8, a pré-checagem recusou o ambiente.
+- **Evidência:** a API respondeu *"This website is under heavy load (queue full)"* (TC15); um clique esperou 10 s sem a página estabilizar no mesmo intervalo (US03-EXTRA, evidência indireta); horas depois, a home também não abriu em 30 s a partir da máquina local e voltou minutos depois.
+- **Classificação:** ambiente (capacidade do site de terceiro).
+- **Tratamento:** nenhum ajuste na suíte. Não há como corrigir a capacidade do site, e aumentar limites ou repetir testes mascararia o problema. A pré-checagem e as anotações tornam a causa visível no relatório.

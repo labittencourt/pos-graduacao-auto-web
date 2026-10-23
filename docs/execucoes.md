@@ -14,7 +14,8 @@ Colunas: "Falha esperada" = teste de bug conhecido que falhou como esperado; "Fa
 | GitHub Actions | 1ª execução (push do commit `4f2522e`), [run 39884571898](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39884571898) | ✅ verde: todos os passos com sucesso; artefatos `playwright-report` e `allure-report` publicados |
 | GitHub Actions | 2ª execução (push do commit `d31431d`), [run 39885365216](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39885365216) | ✅ verde |
 | GitHub Actions | 1ª série de 10 (`e2e-stability`), [run 39885435395](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39885435395) | ❌ 7 de 10: as execuções 7, 8 e 10 foram bloqueadas pela verificação anti-bot do site (ambiente) |
-| GitHub Actions | 2ª série de 10, espaçada (MEM-004) | pendente |
+| GitHub Actions | 3ª execução (push do commit `96f00d4`, 1ª com pré-checagem anti-bot), [run 39945967847](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39945967847) | ✅ verde |
+| GitHub Actions | 2ª série de 10, espaçada (MEM-004), [run 39949670882](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39949670882) | ❌ 8 de 10: execução 2 com sobrecarga do site ("queue full"), execução 8 bloqueada na pré-checagem (ambiente) |
 
 ## 1ª série — 2026-10-22, 4 workers, limites originais (teste 30 s, assertion 5 s)
 
@@ -111,3 +112,30 @@ Execuções sequenciais (1 por job, 1 worker), sem espaçamento.
 - **Classificação:** ambiente (proteção anti-bot de terceiro). Não é defeito do produto nem dos testes.
 - **O que NÃO foi feito:** esconder a automação (remover `navigator.webdriver`, plugins "stealth") para passar pelo desafio. Seria burlar um controle de segurança de terceiro e mascarar o ambiente.
 - **Tratamento (decisão do usuário, MEM-004):** (1) a série espera 20 min entre execuções; (2) a pré-checagem `scripts/check-site-access.js` roda antes dos testes e falha na hora com "AMBIENTE BLOQUEADO" quando o site serve o desafio; (3) os testes que falham com o desafio na tela recebem a anotação `ambiente`; (4) reporter `github` no CI para que as falhas apareçam como anotação pública do job.
+
+## GitHub Actions — 2ª série de 10, espaçada (`e2e-stability`, run 39949670882, 2026-10-23)
+
+20 min de espera entre execuções (MEM-004) e pré-checagem de acesso antes da suíte. Execuções sequenciais com 1 worker. Commit `96f00d4`.
+
+| Execução | Início (UTC) | Fim (UTC) | Pré-checagem | Suíte | Causa |
+|---------:|--------------|-----------|--------------|-------|-------|
+| 1 | 11:56:46 | 12:00:01 | ✅ | ✅ | — |
+| 2 | 12:00:03 | 12:24:32 | ✅ | ❌ 2 falhas (31 dentro do esperado) | sobrecarga do site |
+| 3 | 12:24:34 | 12:47:55 | ✅ | ✅ | — |
+| 4 | 12:47:57 | 13:12:18 | ✅ | ✅ | — |
+| 5 | 13:12:21 | 13:45:42 | ✅ | ✅ | — |
+| 6 | 13:45:44 | 14:17:41 | ✅ | ✅ | — |
+| 7 | 14:17:43 | 14:40:43 | ✅ | ✅ | — |
+| 8 | 14:40:46 | 15:09:50 | ❌ | não rodou | site recusou o runner |
+| 9 | 15:09:52 | 15:33:06 | ✅ | ✅ | — |
+| 10 | 15:33:09 | 16:07:17 | ✅ | ✅ | — |
+
+(As durações dos jobs incluem os 20 min de espera.)
+
+**Triagem — evidência pelas anotações públicas do reporter `github`**
+- **Execução 2, `TC15 Place Order: Register before Checkout`:** **ambiente, evidência direta.** A API de contas respondeu *"This website is under heavy load (queue full) — We're sorry, too many people are accessing this website at the same time"*. O site recusou a requisição por sobrecarga.
+- **Execução 2, `US03-EXTRA Session persists when navigating`:** **provável ambiente, evidência indireta.** O clique em "Products" esperou 10 s sem a página ficar estável (`waiting for element to be visible, enabled and stable`), na mesma execução e no mesmo intervalo da sobrecarga. Os artefatos não foram baixados para confirmar.
+- **Execução 8:** a **pré-checagem** falhou e a suíte não rodou: o site recusou ou não atendeu o runner (ambiente). A mensagem exata ficou só no log do job, que exige login. Depois desta série, a pré-checagem passou a publicar a mensagem como anotação pública (`::error title=Ambiente (pre-checagem)::...`).
+- **Contexto:** no mesmo dia, por volta das 16:20 UTC, a home não carregou em 30 s nem a partir da máquina local, e respondeu normalmente minutos depois. A indisponibilidade é intermitente e do próprio site.
+
+**Resultado:** meta de 10 consecutivas **não atingida no CI**. Nenhuma das falhas das duas séries do CI foi falha de lógica da suíte: todas foram do site (anti-bot, sobrecarga ou indisponibilidade), com evidência.

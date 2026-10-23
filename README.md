@@ -9,7 +9,7 @@ Escopo: casos de teste **1, 2, 3, 4, 5, 8, 9, 10, 15 e 16** de <https://www.auto
 | Testes | 33: os 10 TCs + 23 cenários extras de risco aprovados |
 | Specs | 4, um por épico |
 | Bugs do site encontrados | 7 ([docs/bugs-index.md](docs/bugs-index.md)), cobertos por testes em falha esperada |
-| Estabilidade | 10 execuções consecutivas da suíte completa sem falha inesperada ([docs/execucoes.md](docs/execucoes.md)) |
+| Estabilidade | Local: 10 execuções consecutivas da suíte completa sem falha inesperada. CI: execuções avulsas verdes; nas séries de 10, as falhas foram todas do site (anti-bot, sobrecarga), com triagem ([docs/execucoes.md](docs/execucoes.md)) |
 | Retries | 0, por regra do projeto: instabilidade é diagnosticada na causa |
 
 ## Pré-requisitos
