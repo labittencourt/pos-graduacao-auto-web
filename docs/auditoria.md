@@ -9,7 +9,7 @@ Este documento confere a suíte contra os 5 critérios de avaliação do trabalh
 | # | Critério | Situação | Evidência principal |
 |---|----------|----------|---------------------|
 | 1 | Execução via GitHub Actions | ✅ | `e2e` verde nos pushes [`4f2522e`](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39884571898), [`d31431d`](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39885365216) e [`96f00d4`](https://github.com/labittencourt/pos-graduacao-auto-web/actions/runs/39945967847) |
-| 2 | Execução sem quebras | ✅ local · ⚠️ CI | 10 consecutivas locais sem falha inesperada; no CI, 3 execuções avulsas verdes e séries de 10 com 7/10 e 8/10, todas as falhas do site (anti-bot, sobrecarga), nenhuma de lógica da suíte ([docs/execucoes.md](execucoes.md)) |
+| 2 | Execução sem quebras | ✅ local · ⚠️ CI | 10 consecutivas locais sem falha inesperada; no CI, 3 execuções avulsas verdes e 3 séries de 10 com 7/10, 8/10 e 7/10, todas as falhas do site (anti-bot, sobrecarga, indisponibilidade), nenhuma de lógica da suíte ([docs/execucoes.md](execucoes.md)) |
 | 3 | Uso adequado de seletores e padrões | ✅ | 43 `data-qa` + 8 role/label/text nos Page Objects; 0 XPath; 0 locator nos specs |
 | 4 | Boas práticas | ✅ | 0 `waitForTimeout`, 0 retries, dados únicos, teardown garantido, sem segredos |
 | 5 | Relatórios | ✅ | HTML do Playwright + Allure publicados como artefatos no CI; reporter de console + catálogo |
@@ -32,7 +32,7 @@ Este documento confere a suíte contra os 5 critérios de avaliação do trabalh
 | Item | Evidência |
 |------|-----------|
 | 10 consecutivas locais | 3ª série, execuções 2 a 11: 25 passaram + 8 falhas esperadas, 0 inesperadas, mesmo código ([docs/execucoes.md](execucoes.md)) |
-| 10 consecutivas no CI | ⚠️ **não atingida.** 1ª série: 7/10 (3 bloqueadas pelo anti-bot, FLK-004). 2ª série, espaçada: 8/10 (execução 2 com o site respondendo "heavy load (queue full)", execução 8 recusada na pré-checagem, FLK-005). Fora das séries, as 3 execuções do `e2e` (pushes) foram verdes. Todas as falhas do CI são do site, com evidência |
+| 10 consecutivas no CI | ⚠️ **não atingida.** 1ª série: 7/10 (anti-bot, FLK-004). 2ª série: 8/10 (sobrecarga "queue full" + pré-checagem, FLK-005). 3ª série: 7/10 (indisponibilidade + API timeout, ambiente). Fora das séries, as 3 execuções do `e2e` (pushes) foram verdes. Todas as falhas do CI são do site, com evidência pelas anotações públicas |
 | Toda falha triada com evidência | 6 séries/rodadas com falha, todas classificadas: 2 testes incorretos (FLK-002, FLK-003, corrigidos), 3 de ambiente (FLK-001 anúncios, picos de latência e Cloudflare 520, FLK-004 anti-bot), 1 sem artefato para classificar (1ª série local, execução 1 — OC-16) |
 | Instabilidade corrigida na causa, sem mascarar | [docs/flaky-index.md](flaky-index.md): nenhuma correção usou retry ou espera fixa; os limites de tempo foram dimensionados por medição e decididos pelo usuário (MEM-003) |
 

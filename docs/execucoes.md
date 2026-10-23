@@ -139,3 +139,29 @@ Execuções sequenciais (1 por job, 1 worker), sem espaçamento.
 - **Contexto:** no mesmo dia, por volta das 16:20 UTC, a home não carregou em 30 s nem a partir da máquina local, e respondeu normalmente minutos depois. A indisponibilidade é intermitente e do próprio site.
 
 **Resultado:** meta de 10 consecutivas **não atingida no CI**. Nenhuma das falhas das duas séries do CI foi falha de lógica da suíte: todas foram do site (anti-bot, sobrecarga ou indisponibilidade), com evidência.
+
+## GitHub Actions — 3ª série de 10, espaçada (`e2e-stability`, run 39987185404, 2026-10-23)
+
+20 min de espera entre execuções (MEM-004) e pré-checagem de acesso antes da suíte. Execuções sequenciais com 1 worker. Commit `6b6ea41`.
+
+| Execução | Início (UTC) | Fim (UTC) | Pré-checagem | Suíte | Causa |
+|---------:|--------------|-----------|--------------|-------|-------|
+| 1 | 16:29:22 | 16:32:43 | ✅ | ✅ | — |
+| 2 | 16:32:45 | 16:56:25 | ✅ | ✅ | — |
+| 3 | 16:56:27 | 17:22:48 | ✅ | ❌ 3 falhas (30 dentro do esperado) | indisponibilidade do site |
+| 4 | 17:22:50 | 17:48:33 | ✅ | ❌ 4 falhas (29 dentro do esperado) | indisponibilidade do site |
+| 5 | 17:48:35 | 18:18:45 | ✅ | ✅ | — |
+| 6 | 18:18:47 | 18:42:37 | ✅ | ✅ | — |
+| 7 | 18:42:39 | 19:07:42 | ✅ | ❌ 1 falha (32 dentro do esperado) | API do site sem resposta |
+| 8 | 19:07:43 | 19:33:16 | ✅ | ✅ | — |
+| 9 | 19:33:18 | 19:56:51 | ✅ | ✅ | — |
+| 10 | 19:56:53 | 20:23:51 | ✅ | ✅ | — |
+
+(As durações dos jobs incluem os 20 min de espera.)
+
+**Triagem — evidência pelas anotações públicas do reporter `github`**
+- **Execução 3 (3 falhas):** `TC10` e `US01-EXTRA Required field` — `page.goto` excedeu 30 s tentando abrir a home/login. `TC02` — `locator.click` excedeu 10 s no link "Delete Account". Todos são timeouts de navegação no mesmo intervalo: **indisponibilidade intermitente do site** (ambiente).
+- **Execução 4 (4 falhas):** `TC09` — `page.goto` excedeu 30 s (home page). `US08-EXTRA case-insensitive` e `TC15` — timeouts de carregamento e botão. `TC15` ficou em `/payment` em vez de `/payment_done` dentro do tempo limite, evidência indireta de que o servidor não processou o pedido neste intervalo. Mesma janela de tempo da execução 3: **indisponibilidade do site** (ambiente).
+- **Execução 7 (1 falha):** `TC05 Register User with existing email` — `apiRequestContext.post` excedeu 10 s em `src/utils/account-api.ts:20` (setup do teste). A API do site não respondeu no prazo: **ambiente**.
+
+**Resultado:** meta de 10 consecutivas **não atingida no CI**. Nenhuma das falhas das três séries do CI foi falha de lógica da suíte: todas foram do site (anti-bot, sobrecarga, indisponibilidade ou API sem resposta), com evidência pelas anotações públicas do job.
